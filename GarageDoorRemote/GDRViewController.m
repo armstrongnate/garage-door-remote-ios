@@ -7,6 +7,10 @@
 //
 
 #import "GDRViewController.h"
+#import "AFNetworking.h"
+#import "GDRSettingsViewController.h"
+
+NSString * const kRASPERRY_PI_URL_KEY = @"garageDoorPiUrl";
 
 @interface GDRViewController ()
 @property (weak, nonatomic) IBOutlet UIImageView *garageButtonImage;
@@ -29,7 +33,17 @@
 }
 
 - (IBAction)garageButtonWasPressed:(UIButton *)sender {
-  self.garageButtonImage.highlighted = NO;
+  NSString *url = [[NSUserDefaults standardUserDefaults] objectForKey:kRASPERRY_PI_URL_KEY];
+  if (url && url.length > 0) {
+    [[AFHTTPSessionManager manager] GET:url parameters:nil success:^(NSURLSessionDataTask *task, id responseObject) {
+      self.garageButtonImage.highlighted = NO;
+    } failure:^(NSURLSessionDataTask *task, NSError *error) {
+      self.garageButtonImage.highlighted = NO;
+    }];
+  }
+  else {
+    self.garageButtonImage.highlighted = NO;
+  }
 }
 
 - (IBAction)garageButtonWasPressedDown:(UIButton *)sender {
@@ -37,7 +51,9 @@
 }
 
 - (IBAction)unwindFromSettings:(UIStoryboardSegue *)segue {
-  NSLog(@"Came from settings");
+  GDRSettingsViewController *settingsVC = (GDRSettingsViewController *)segue.sourceViewController;
+  [[NSUserDefaults standardUserDefaults] setObject:settingsVC.urlTextField.text forKey:kRASPERRY_PI_URL_KEY];
+  [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 
